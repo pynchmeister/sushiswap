@@ -3,7 +3,7 @@ import { prepare, deploy, getBigNumber, createSLP } from "./utilities"
 
 describe("ZapWizard", function () {
   before(async function () {
-    await prepare(this, ["ZapWizard", "ZapStake", "SushiMakerExploitMock", "ERC20Mock", "UniswapV2Factory", "UniswapV2Pair"])
+    await prepare(this, ["ZapWizard", "ZapStake", "ZapWizardExploitMock", "ERC20Mock", "UniswapV2Factory", "UniswapV2Pair"])
   })
 
   beforeEach(async function () {
@@ -18,7 +18,7 @@ describe("ZapWizard", function () {
     ])
     await deploy(this, [["bar", this.ZapStake, [this.sushi.address]]])
     await deploy(this, [["sushiMaker", this.ZapWizard, [this.factory.address, this.bar.address, this.sushi.address, this.weth.address]]])
-    await deploy(this, [["exploiter", this.SushiMakerExploitMock, [this.sushiMaker.address]]])
+    await deploy(this, [["exploiter", this.ZapWizardExploitMock, [this.sushiMaker.address]]])
     await createSLP(this, "sushiEth", this.sushi, this.weth, getBigNumber(10))
     await createSLP(this, "strudelEth", this.strudel, this.weth, getBigNumber(10))
     await createSLP(this, "daiEth", this.dai, this.weth, getBigNumber(10))
@@ -30,15 +30,15 @@ describe("ZapWizard", function () {
   })
   describe("setBridge", function () {
     it("does not allow to set bridge for GZap", async function () {
-      await expect(this.sushiMaker.setBridge(this.sushi.address, this.weth.address)).to.be.revertedWith("SushiMaker: Invalid bridge")
+      await expect(this.sushiMaker.setBridge(this.sushi.address, this.weth.address)).to.be.revertedWith("ZapWizard: Invalid bridge")
     })
 
     it("does not allow to set bridge for WETH", async function () {
-      await expect(this.sushiMaker.setBridge(this.weth.address, this.sushi.address)).to.be.revertedWith("SushiMaker: Invalid bridge")
+      await expect(this.sushiMaker.setBridge(this.weth.address, this.sushi.address)).to.be.revertedWith("ZapWizard: Invalid bridge")
     })
 
     it("does not allow to set bridge to itself", async function () {
-      await expect(this.sushiMaker.setBridge(this.dai.address, this.dai.address)).to.be.revertedWith("SushiMaker: Invalid bridge")
+      await expect(this.sushiMaker.setBridge(this.dai.address, this.dai.address)).to.be.revertedWith("ZapWizard: Invalid bridge")
     })
 
     it("emits correct event on bridge", async function () {
@@ -127,16 +127,16 @@ describe("ZapWizard", function () {
 
     it("reverts if caller is not EOA", async function () {
       await this.sushiEth.transfer(this.sushiMaker.address, getBigNumber(1))
-      await expect(this.exploiter.convert(this.sushi.address, this.weth.address)).to.be.revertedWith("SushiMaker: must use EOA")
+      await expect(this.exploiter.convert(this.sushi.address, this.weth.address)).to.be.revertedWith("ZapWizard: must use EOA")
     })
 
     it("reverts if pair does not exist", async function () {
-      await expect(this.sushiMaker.convert(this.mic.address, this.micUSDC.address)).to.be.revertedWith("SushiMaker: Invalid pair")
+      await expect(this.sushiMaker.convert(this.mic.address, this.micUSDC.address)).to.be.revertedWith("ZapWizard: Invalid pair")
     })
 
     it("reverts if no path is available", async function () {
       await this.micUSDC.transfer(this.sushiMaker.address, getBigNumber(1))
-      await expect(this.sushiMaker.convert(this.mic.address, this.usdc.address)).to.be.revertedWith("SushiMaker: Cannot convert")
+      await expect(this.sushiMaker.convert(this.mic.address, this.usdc.address)).to.be.revertedWith("ZapWizard: Cannot convert")
       expect(await this.sushi.balanceOf(this.sushiMaker.address)).to.equal(0)
       expect(await this.micUSDC.balanceOf(this.sushiMaker.address)).to.equal(getBigNumber(1))
       expect(await this.sushi.balanceOf(this.bar.address)).to.equal(0)

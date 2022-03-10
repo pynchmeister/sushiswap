@@ -5,7 +5,7 @@ import { prepare, deploy, getBigNumber, createSLP } from "./utilities"
 
 describe("KashiSushiMaker", function () {
   before(async function () {
-    await prepare(this, ["SushiMakerKashi", "ZapStake", "SushiMakerKashiExploitMock", "ERC20Mock", "UniswapV2Factory", "UniswapV2Pair", "BentoBoxV1", "KashiPairMediumRiskV1", "PeggedOracleV1"])
+    await prepare(this, ["ZapWizardKashi", "ZapStake", "ZapWizardKashiExploitMock", "ERC20Mock", "UniswapV2Factory", "UniswapV2Pair", "BentoBoxV1", "KashiPairMediumRiskV1", "PeggedOracleV1"])
   })
 
   beforeEach(async function () {
@@ -23,8 +23,8 @@ describe("KashiSushiMaker", function () {
     await deploy(this, [["bar", this.ZapStake, [this.sushi.address]]])
     await deploy(this, [["bento", this.BentoBoxV1, [this.weth.address]]])
     await deploy(this, [["kashiMaster", this.KashiPairMediumRiskV1, [this.bento.address]]])
-    await deploy(this, [["kashiMaker", this.SushiMakerKashi, [this.factory.address, this.bar.address, this.bento.address, this.sushi.address, this.weth.address, this.factory.pairCodeHash()]]])
-    await deploy(this, [["exploiter", this.SushiMakerKashiExploitMock, [this.kashiMaker.address]]])
+    await deploy(this, [["kashiMaker", this.ZapWizardKashi, [this.factory.address, this.bar.address, this.bento.address, this.sushi.address, this.weth.address, this.factory.pairCodeHash()]]])
+    await deploy(this, [["exploiter", this.ZapWizardKashiExploitMock, [this.kashiMaker.address]]])
     await deploy(this, [["oracle", this.PeggedOracleV1]])
     // Create SLPs
     await createSLP(this, "sushiEth", this.sushi, this.weth, getBigNumber(10))

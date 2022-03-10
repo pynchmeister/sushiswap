@@ -74,7 +74,7 @@ contract ZapWizard is Ownable {
         // Checks
         require(
             token != sushi && token != weth && token != bridge,
-            "SushiMaker: Invalid bridge"
+            "ZapWizard: Invalid bridge"
         );
 
         // Effects
@@ -87,7 +87,7 @@ contract ZapWizard is Ownable {
     // C6: It's not a fool proof solution, but it prevents flash loans, so here it's ok to use tx.origin
     modifier onlyEOA() {
         // Try to make flash-loan exploit harder to do by only allowing externally owned addresses.
-        require(msg.sender == tx.origin, "SushiMaker: must use EOA");
+        require(msg.sender == tx.origin, "ZapWizard: must use EOA");
         _;
     }
 
@@ -121,7 +121,7 @@ contract ZapWizard is Ownable {
         // Interactions
         // S1 - S4: OK
         IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(token0, token1));
-        require(address(pair) != address(0), "SushiMaker: Invalid pair");
+        require(address(pair) != address(0), "ZapWizard: Invalid pair");
         // balanceOf: S1 - S4: OK
         // transfer: X1 - X5: OK
         IERC20(address(pair)).safeTransfer(
@@ -229,7 +229,7 @@ contract ZapWizard is Ownable {
         // X1 - X5: OK
         IUniswapV2Pair pair =
             IUniswapV2Pair(factory.getPair(fromToken, toToken));
-        require(address(pair) != address(0), "SushiMaker: Cannot convert");
+        require(address(pair) != address(0), "ZapWizard: Cannot convert");
 
         // Interactions
         // X1 - X5: OK
