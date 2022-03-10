@@ -17,7 +17,7 @@ interface IMigratorDirector {
 }
 
 /// @notice The (older) ZapDirector contract gives out a constant number of GZAP tokens per block.
-/// It is the only address with minting rights for SUSHI.
+/// It is the only address with minting rights for GZAP.
 /// The idea for this ZapDirector V2 (ZDV2) contract is therefore to be the owner of a dummy token
 /// that is deposited into the ZapDirector V1 (ZDV1) contract.
 /// The allocation point for this pool on ZDV1 is the total allocation point for all pools that receive double incentives.
@@ -27,33 +27,33 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
     using BoringERC20 for IERC20;
     using SignedSafeMath for int256;
 
-    /// @notice Info of each MCV2 user.
+    /// @notice Info of each ZDV2 user.
     /// `amount` LP token amount the user has provided.
-    /// `rewardDebt` The amount of SUSHI entitled to the user.
+    /// `rewardDebt` The amount of GZAP entitled to the user.
     struct UserInfo {
         uint256 amount;
         int256 rewardDebt;
     }
 
-    /// @notice Info of each MCV2 pool.
+    /// @notice Info of each ZDV2 pool.
     /// `allocPoint` The amount of allocation points assigned to the pool.
-    /// Also known as the amount of SUSHI to distribute per block.
+    /// Also known as the amount of GZAP to distribute per block.
     struct PoolInfo {
         uint128 accGZapPerShare;
         uint64 lastRewardTime;
         uint64 allocPoint;
     }
 
-    /// @notice Address of SUSHI contract.
-    IERC20 public immutable SUSHI;
+    /// @notice Address of GZAP contract.
+    IERC20 public immutable GZAP;
     // @notice The migrator contract. It has a lot of power. Can only be set through governance (owner).
-    IMigratorChef public migrator;
+    IMigratorDirector public migrator;
 
-    /// @notice Info of each MCV2 pool.
+    /// @notice Info of each ZDV2 pool.
     PoolInfo[] public poolInfo;
-    /// @notice Address of the LP token for each MCV2 pool.
+    /// @notice Address of the LP token for each ZDV2 pool.
     IERC20[] public lpToken;
-    /// @notice Address of each `IRewarder` contract in MCV2.
+    /// @notice Address of each `IRewarder` contract in ZDV2.
     IRewarder[] public rewarder;
 
     /// @notice Info of each user that stakes LP tokens.
@@ -65,8 +65,8 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
     /// @dev Total allocation points. Must be the sum of all allocation points in all pools.
     uint256 public totalAllocPoint;
 
-    uint256 public sushiPerSecond;
-    uint256 private constant ACC_SUSHI_PRECISION = 1e12;
+    uint256 public gzapPerSecond;
+    uint256 private constant ACC_GZAP_PRECISION = 1e12;
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount, address indexed to);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount, address indexed to);
@@ -75,11 +75,11 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
     event LogPoolAddition(uint256 indexed pid, uint256 allocPoint, IERC20 indexed lpToken, IRewarder indexed rewarder);
     event LogSetPool(uint256 indexed pid, uint256 allocPoint, IRewarder indexed rewarder, bool overwrite);
     event LogUpdatePool(uint256 indexed pid, uint64 lastRewardTime, uint256 lpSupply, uint256 accGZapPerShare);
-    event LogSushiPerSecond(uint256 sushiPerSecond);
+    event LogGzapPerSecond(uint256 gzapPerSecond);
 
-    /// @param _sushi The SUSHI token contract address.
-    constructor(IERC20 _sushi) public {
-        SUSHI = _sushi;
+    /// @param _gzap The GZAP token contract address.
+    constructor(IERC20 _gzap) public {
+        GZAP = _gzap;
     }
 
     /// @notice Returns the number of MCV2 pools.
@@ -107,7 +107,7 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
         emit LogPoolAddition(lpToken.length.sub(1), allocPoint, _lpToken, _rewarder);
     }
 
-    /// @notice Update the given pool's SUSHI allocation point and `IRewarder` contract. Can only be called by the owner.
+    /// @notice Update the given pool's GZAP allocation point and `IRewarder` contract. Can only be called by the owner.
     /// @param _pid The index of the pool. See `poolInfo`.
     /// @param _allocPoint New AP of the pool.
     /// @param _rewarder Address of the rewarder delegate.
@@ -119,49 +119,49 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
         emit LogSetPool(_pid, _allocPoint, overwrite ? _rewarder : rewarder[_pid], overwrite);
     }
 
-    /// @notice Sets the sushi per second to be distributed. Can only be called by the owner.
-    /// @param _sushiPerSecond The amount of Sushi to be distributed per second.
-    function setSushiPerSecond(uint256 _sushiPerSecond) public onlyOwner {
-        sushiPerSecond = _sushiPerSecond;
-        emit LogSushiPerSecond(_sushiPerSecond);
+    /// @notice Sets the gzap per second to be distributed. Can only be called by the owner.
+    /// @param _gzapPerSecond The amount of GZap to be distributed per second.
+    function setGZapPerSecond(uint256 _gzapPerSecond) public onlyOwner {
+        gzapPerSecond = _gzapPerSecond;
+        emit LogGzapPerSecond(_gzapPerSecond);
     }
 
     /// @notice Set the `migrator` contract. Can only be called by the owner.
     /// @param _migrator The contract address to set.
-    function setMigrator(IMigratorChef _migrator) public onlyOwner {
+    function setMigrator(IMigratorDirector _migrator) public onlyOwner {
         migrator = _migrator;
     }
 
     /// @notice Migrate LP token to another LP contract through the `migrator` contract.
     /// @param _pid The index of the pool. See `poolInfo`.
     function migrate(uint256 _pid) public {
-        require(address(migrator) != address(0), "MasterChefV2: no migrator set");
+        require(address(migrator) != address(0), "ZapDirectorV2: no migrator set");
         IERC20 _lpToken = lpToken[_pid];
         uint256 bal = _lpToken.balanceOf(address(this));
         _lpToken.approve(address(migrator), bal);
         IERC20 newLpToken = migrator.migrate(_lpToken);
-        require(bal == newLpToken.balanceOf(address(this)), "MasterChefV2: migrated balance must match");
+        require(bal == newLpToken.balanceOf(address(this)), "ZapDirectorV2: migrated balance must match");
         require(addedTokens[address(newLpToken)] == false, "Token already added");
         addedTokens[address(newLpToken)] = true;
         addedTokens[address(_lpToken)] = false;
         lpToken[_pid] = newLpToken;
     }
 
-    /// @notice View function to see pending SUSHI on frontend.
+    /// @notice View function to see pending GZAP on frontend.
     /// @param _pid The index of the pool. See `poolInfo`.
     /// @param _user Address of user.
-    /// @return pending SUSHI reward for a given user.
-    function pendingSushi(uint256 _pid, address _user) external view returns (uint256 pending) {
+    /// @return pending GZAP reward for a given user.
+    function pendingGZap(uint256 _pid, address _user) external view returns (uint256 pending) {
         PoolInfo memory pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
         uint256 accGZapPerShare = pool.accGZapPerShare;
         uint256 lpSupply = lpToken[_pid].balanceOf(address(this));
         if (block.timestamp > pool.lastRewardTime && lpSupply != 0) {
             uint256 time = block.timestamp.sub(pool.lastRewardTime);
-            uint256 sushiReward = time.mul(sushiPerSecond).mul(pool.allocPoint) / totalAllocPoint;
-            accGZapPerShare = accGZapPerShare.add(sushiReward.mul(ACC_SUSHI_PRECISION) / lpSupply);
+            uint256 gzapReward = time.mul(gzapPerSecond).mul(pool.allocPoint) / totalAllocPoint;
+            accGZapPerShare = accGZapPerShare.add(gzapReward.mul(ACC_GZAP_PRECISION) / lpSupply);
         }
-        pending = int256(user.amount.mul(accGZapPerShare) / ACC_SUSHI_PRECISION).sub(user.rewardDebt).toUInt256();
+        pending = int256(user.amount.mul(accGZapPerShare) / ACC_GZAP_PRECISION).sub(user.rewardDebt).toUInt256();
     }
 
     /// @notice Update reward variables for all pools. Be careful of gas spending!
@@ -182,8 +182,8 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
             uint256 lpSupply = lpToken[pid].balanceOf(address(this));
             if (lpSupply > 0) {
                 uint256 time = block.timestamp.sub(pool.lastRewardTime);
-                uint256 sushiReward = time.mul(sushiPerSecond).mul(pool.allocPoint) / totalAllocPoint;
-                pool.accGZapPerShare = pool.accGZapPerShare.add((sushiReward.mul(ACC_SUSHI_PRECISION) / lpSupply).to128());
+                uint256 gzapReward = time.mul(gzapPerSecond).mul(pool.allocPoint) / totalAllocPoint;
+                pool.accGZapPerShare = pool.accGZapPerShare.add((gzapReward.mul(ACC_GZAP_PRECISION) / lpSupply).to128());
             }
             pool.lastRewardTime = block.timestamp.to64();
             poolInfo[pid] = pool;
@@ -191,7 +191,7 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
         }
     }
 
-    /// @notice Deposit LP tokens to MCV2 for SUSHI allocation.
+    /// @notice Deposit LP tokens to ZDV2 for GZAP allocation.
     /// @param pid The index of the pool. See `poolInfo`.
     /// @param amount LP token amount to deposit.
     /// @param to The receiver of `amount` deposit benefit.
@@ -201,7 +201,7 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
 
         // Effects
         user.amount = user.amount.add(amount);
-        user.rewardDebt = user.rewardDebt.add(int256(amount.mul(pool.accGZapPerShare) / ACC_SUSHI_PRECISION));
+        user.rewardDebt = user.rewardDebt.add(int256(amount.mul(pool.accGZapPerShare) / ACC_GZAP_PRECISION));
 
         // Interactions
         IRewarder _rewarder = rewarder[pid];
@@ -214,7 +214,7 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
         emit Deposit(msg.sender, pid, amount, to);
     }
 
-    /// @notice Withdraw LP tokens from MCV2.
+    /// @notice Withdraw LP tokens from ZDV2.
     /// @param pid The index of the pool. See `poolInfo`.
     /// @param amount LP token amount to withdraw.
     /// @param to Receiver of the LP tokens.
@@ -223,7 +223,7 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
         UserInfo storage user = userInfo[pid][msg.sender];
 
         // Effects
-        user.rewardDebt = user.rewardDebt.sub(int256(amount.mul(pool.accGZapPerShare) / ACC_SUSHI_PRECISION));
+        user.rewardDebt = user.rewardDebt.sub(int256(amount.mul(pool.accGZapPerShare) / ACC_GZAP_PRECISION));
         user.amount = user.amount.sub(amount);
 
         // Interactions
@@ -239,55 +239,55 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
 
     /// @notice Harvest proceeds for transaction sender to `to`.
     /// @param pid The index of the pool. See `poolInfo`.
-    /// @param to Receiver of SUSHI rewards.
+    /// @param to Receiver of GZAP rewards.
     function harvest(uint256 pid, address to) public {
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][msg.sender];
-        int256 accumulatedSushi = int256(user.amount.mul(pool.accGZapPerShare) / ACC_SUSHI_PRECISION);
-        uint256 _pendingSushi = accumulatedSushi.sub(user.rewardDebt).toUInt256();
+        int256 accumulatedGZap = int256(user.amount.mul(pool.accGZapPerShare) / ACC_GZAP_PRECISION);
+        uint256 _pendingGZap = accumulatedGZap.sub(user.rewardDebt).toUInt256();
 
         // Effects
-        user.rewardDebt = accumulatedSushi;
+        user.rewardDebt = accumulatedGZap;
 
         // Interactions
-        if (_pendingSushi != 0) {
-            SUSHI.safeTransfer(to, _pendingSushi);
+        if (_pendingGZap != 0) {
+            GZAP.safeTransfer(to, _pendingGZap);
         }
 
         IRewarder _rewarder = rewarder[pid];
         if (address(_rewarder) != address(0)) {
-            _rewarder.onGZapReward( pid, msg.sender, to, _pendingSushi, user.amount);
+            _rewarder.onGZapReward( pid, msg.sender, to, _pendingGZap, user.amount);
         }
 
-        emit Harvest(msg.sender, pid, _pendingSushi);
+        emit Harvest(msg.sender, pid, _pendingGZap);
     }
 
-    /// @notice Withdraw LP tokens from MCV2 and harvest proceeds for transaction sender to `to`.
+    /// @notice Withdraw LP tokens from ZDV2 and harvest proceeds for transaction sender to `to`.
     /// @param pid The index of the pool. See `poolInfo`.
     /// @param amount LP token amount to withdraw.
-    /// @param to Receiver of the LP tokens and SUSHI rewards.
+    /// @param to Receiver of the LP tokens and GZAP rewards.
     function withdrawAndHarvest(uint256 pid, uint256 amount, address to) public {
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][msg.sender];
-        int256 accumulatedSushi = int256(user.amount.mul(pool.accGZapPerShare) / ACC_SUSHI_PRECISION);
-        uint256 _pendingSushi = accumulatedSushi.sub(user.rewardDebt).toUInt256();
+        int256 accumulatedGZap = int256(user.amount.mul(pool.accGZapPerShare) / ACC_GZAP_PRECISION);
+        uint256 _pendingGZap = accumulatedGZap.sub(user.rewardDebt).toUInt256();
 
         // Effects
-        user.rewardDebt = accumulatedSushi.sub(int256(amount.mul(pool.accGZapPerShare) / ACC_SUSHI_PRECISION));
+        user.rewardDebt = accumulatedGZap.sub(int256(amount.mul(pool.accGZapPerShare) / ACC_GZAP_PRECISION));
         user.amount = user.amount.sub(amount);
 
         // Interactions
-        SUSHI.safeTransfer(to, _pendingSushi);
+        GZAP.safeTransfer(to, _pendingGZap);
 
         IRewarder _rewarder = rewarder[pid];
         if (address(_rewarder) != address(0)) {
-            _rewarder.onGZapReward(pid, msg.sender, to, _pendingSushi, user.amount);
+            _rewarder.onGZapReward(pid, msg.sender, to, _pendingGZap, user.amount);
         }
 
         lpToken[pid].safeTransfer(to, amount);
 
         emit Withdraw(msg.sender, pid, amount, to);
-        emit Harvest(msg.sender, pid, _pendingSushi);
+        emit Harvest(msg.sender, pid, _pendingGZap);
     }
 
     /// @notice Withdraw without caring about rewards. EMERGENCY ONLY.
