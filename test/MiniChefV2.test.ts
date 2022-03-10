@@ -5,7 +5,7 @@ import { ethers } from "hardhat"
 
 const { BigNumber } = require("ethers")
 
-describe("MiniChefV2", function () {
+describe("MiniZapDirector2", function () {
   before(async function () {
     await prepare(this, ["MiniChefV2", "SushiToken", "ERC20Mock", "RewarderMock", "RewarderBrokenMock"])
     await deploy(this, [["brokenRewarder", this.RewarderBrokenMock]])
@@ -57,8 +57,8 @@ describe("MiniChefV2", function () {
     })
   })
 
-  describe("PendingSushi", function () {
-    it("PendingSushi should equal ExpectedSushi", async function () {
+  describe("PendingGzap", function () {
+    it("PendingGZap should equal ExpectedSushi", async function () {
       await this.chef.add(10, this.rlp.address, this.rewarder.address)
       await this.rlp.approve(this.chef.address, getBigNumber(10))
       let log = await this.chef.deposit(0, getBigNumber(1), this.alice.address)
@@ -195,7 +195,7 @@ describe("MiniChefV2", function () {
       await this.chef.harvest(0, this.alice.address)
     })
 
-    it("Harvest for SUSHI-only pool", async function () {
+    it("Harvest for GZAP-only pool", async function () {
       await this.chef.add(10, this.rlp.address, ADDRESS_ZERO)
       await this.rlp.approve(this.chef.address, getBigNumber(10))
       expect(await this.chef.lpToken(0)).to.be.equal(this.rlp.address)

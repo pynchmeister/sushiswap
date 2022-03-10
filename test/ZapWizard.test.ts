@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import { prepare, deploy, getBigNumber, createSLP } from "./utilities"
 
-describe("SushiMaker", function () {
+describe("ZapWizard", function () {
   before(async function () {
-    await prepare(this, ["SushiMaker", "SushiBar", "SushiMakerExploitMock", "ERC20Mock", "UniswapV2Factory", "UniswapV2Pair"])
+    await prepare(this, ["SushiMaker", "ZapStake", "SushiMakerExploitMock", "ERC20Mock", "UniswapV2Factory", "UniswapV2Pair"])
   })
 
   beforeEach(async function () {
@@ -16,7 +16,7 @@ describe("SushiMaker", function () {
       ["strudel", this.ERC20Mock, ["$TRDL", "$TRDL", getBigNumber("10000000")]],
       ["factory", this.UniswapV2Factory, [this.alice.address]],
     ])
-    await deploy(this, [["bar", this.SushiBar, [this.sushi.address]]])
+    await deploy(this, [["bar", this.ZapStake, [this.sushi.address]]])
     await deploy(this, [["sushiMaker", this.SushiMaker, [this.factory.address, this.bar.address, this.sushi.address, this.weth.address]]])
     await deploy(this, [["exploiter", this.SushiMakerExploitMock, [this.sushiMaker.address]]])
     await createSLP(this, "sushiEth", this.sushi, this.weth, getBigNumber(10))
@@ -29,7 +29,7 @@ describe("SushiMaker", function () {
     await createSLP(this, "daiMIC", this.dai, this.mic, getBigNumber(10))
   })
   describe("setBridge", function () {
-    it("does not allow to set bridge for Sushi", async function () {
+    it("does not allow to set bridge for GZap", async function () {
       await expect(this.sushiMaker.setBridge(this.sushi.address, this.weth.address)).to.be.revertedWith("SushiMaker: Invalid bridge")
     })
 
@@ -48,7 +48,7 @@ describe("SushiMaker", function () {
     })
   })
   describe("convert", function () {
-    it("should convert SUSHI - ETH", async function () {
+    it("should convert GZAP - ETH", async function () {
       await this.sushiEth.transfer(this.sushiMaker.address, getBigNumber(1))
       await this.sushiMaker.convert(this.sushi.address, this.weth.address)
       expect(await this.sushi.balanceOf(this.sushiMaker.address)).to.equal(0)
@@ -72,7 +72,7 @@ describe("SushiMaker", function () {
       expect(await this.sushi.balanceOf(this.bar.address)).to.equal("1590898251382934275")
     })
 
-    it("should convert USDC - SUSHI", async function () {
+    it("should convert USDC - GZAP", async function () {
       await this.sushiUSDC.transfer(this.sushiMaker.address, getBigNumber(1))
       await this.sushiMaker.convert(this.usdc.address, this.sushi.address)
       expect(await this.sushi.balanceOf(this.sushiMaker.address)).to.equal(0)
