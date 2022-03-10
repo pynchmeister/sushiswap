@@ -78,8 +78,8 @@ describe("ZapDirectorV2", function () {
       let expectedSushi = getBigNumber(100)
         .mul(log2.blockNumber + 1 - log.blockNumber)
         .div(2)
-      let pendingSushi = await this.chef2.pendingSushi(0, this.alice.address)
-      expect(pendingSushi).to.be.equal(expectedSushi)
+      let pendingGZap = await this.chef2.pendingGZap(0, this.alice.address)
+      expect(pendingGZap).to.be.equal(expectedSushi)
     })
     it("When block is lastRewardBlock", async function () {
       await this.chef2.add(10, this.rlp.address, this.rewarder.address)
@@ -90,8 +90,8 @@ describe("ZapDirectorV2", function () {
       let expectedSushi = getBigNumber(100)
         .mul(log2.blockNumber - log.blockNumber)
         .div(2)
-      let pendingSushi = await this.chef2.pendingSushi(0, this.alice.address)
-      expect(pendingSushi).to.be.equal(expectedSushi)
+      let pendingGZap = await this.chef2.pendingGZap(0, this.alice.address)
+      expect(pendingGZap).to.be.equal(expectedSushi)
     })
   })
 
@@ -134,7 +134,7 @@ describe("ZapDirectorV2", function () {
           0,
           (await this.chef2.poolInfo(0)).lastRewardBlock,
           await this.rlp.balanceOf(this.chef2.address),
-          (await this.chef2.poolInfo(0)).accSushiPerShare
+          (await this.chef2.poolInfo(0)).accGZapPerShare
         )
     })
 
@@ -186,7 +186,7 @@ describe("ZapDirectorV2", function () {
       expect(await this.chef2.lpToken(0)).to.be.equal(this.rlp.address)
       let log = await this.chef2.deposit(0, getBigNumber(1), this.alice.address)
       await advanceBlockTo(20)
-      await this.chef2.harvestFromMasterChef()
+      await this.chef2.harvestFromZapDirector()
       let log2 = await this.chef2.withdraw(0, getBigNumber(1), this.alice.address)
       let expectedSushi = getBigNumber(100)
         .mul(log2.blockNumber - log.blockNumber)
@@ -208,7 +208,7 @@ describe("ZapDirectorV2", function () {
       expect(await this.chef2.lpToken(0)).to.be.equal(this.rlp.address)
       let log = await this.chef2.deposit(0, getBigNumber(1), this.alice.address)
       await advanceBlock()
-      await this.chef2.harvestFromMasterChef()
+      await this.chef2.harvestFromZapDirector()
       let log2 = await this.chef2.withdraw(0, getBigNumber(1), this.alice.address)
       let expectedSushi = getBigNumber(100)
         .mul(log2.blockNumber - log.blockNumber)
