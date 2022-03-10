@@ -8,7 +8,7 @@ import "@boringcrypto/boring-solidity/contracts/BoringBatchable.sol";
 import "@boringcrypto/boring-solidity/contracts/BoringOwnable.sol";
 import "./libraries/SignedSafeMath.sol";
 import "./interfaces/IRewarder.sol";
-import "./interfaces/IMasterChef.sol";
+import "./interfaces/IZapDirector.sol";
 
 interface IMigratorChef {
     // Take the current LP token address and return the new LP token address.
@@ -45,7 +45,7 @@ contract ZapDirectorV2 is BoringOwnable, BoringBatchable {
     }
 
     /// @notice Address of MCV1 contract.
-    IMasterChef public immutable MASTER_CHEF;
+    IZapDirector public immutable ZAP_DIRECTOR;
     /// @notice Address of SUSHI contract.
     IERC20 public immutable SUSHI;
     /// @notice The index of MCV2 master pool in MCV1.
@@ -77,12 +77,13 @@ contract ZapDirectorV2 is BoringOwnable, BoringBatchable {
     event LogUpdatePool(uint256 indexed pid, uint64 lastRewardBlock, uint256 lpSupply, uint256 accSushiPerShare);
     event LogInit();
 
-    /// @param _MASTER_CHEF The SushiSwap MCV1 contract address.
+    /// @param _ZAP_DIRECTOR The ZSwap MCV1 contract address.
     /// @param _sushi The SUSHI token contract address.
     /// @param _MASTER_PID The pool ID of the dummy token on the base MCV1 contract.
-    constructor(IMasterChef _MASTER_CHEF, IERC20 _sushi, uint256 _MASTER_PID) public {
-        MASTER_CHEF = _MASTER_CHEF;
+    constructor(IZapDirector _ZAP_DIRECTOR, IERC20 _sushi, uint256 _MASTER_PID) public {
+        // MASTER_CHEF = _MASTER_CHEF;
         SUSHI = _sushi;
+        ZAP_DIRECTOR = _ZAP_DIRECTOR;
         MASTER_PID = _MASTER_PID;
     }
 
@@ -94,8 +95,8 @@ contract ZapDirectorV2 is BoringOwnable, BoringBatchable {
         uint256 balance = dummyToken.balanceOf(msg.sender);
         require(balance != 0, "MasterChefV2: Balance must exceed 0");
         dummyToken.safeTransferFrom(msg.sender, address(this), balance);
-        dummyToken.approve(address(MASTER_CHEF), balance);
-        MASTER_CHEF.deposit(MASTER_PID, balance);
+        dummyToken.approve(address(ZAP_DIRECTOR), balance);
+        ZAP_DIRECTOR.deposit(MASTER_PID, balance);
         emit LogInit();
     }
 
@@ -182,7 +183,7 @@ contract ZapDirectorV2 is BoringOwnable, BoringBatchable {
     /// @notice Calculates and returns the `amount` of SUSHI per block.
     function sushiPerBlock() public view returns (uint256 amount) {
         amount = uint256(MASTERCHEF_SUSHI_PER_BLOCK)
-            .mul(MASTER_CHEF.poolInfo(MASTER_PID).allocPoint) / MASTER_CHEF.totalAllocPoint();
+            .mul(ZAP_DIRECTOR.poolInfo(MASTER_PID).allocPoint) / ZAP_DIRECTOR.totalAllocPoint();
     }
 
     /// @notice Update reward variables of the given pool.
@@ -304,7 +305,7 @@ contract ZapDirectorV2 is BoringOwnable, BoringBatchable {
 
     /// @notice Harvests SUSHI from `MASTER_CHEF` MCV1 and pool `MASTER_PID` to this MCV2 contract.
     function harvestFromMasterChef() public {
-        MASTER_CHEF.deposit(MASTER_PID, 0);
+        ZAP_DIRECTOR.deposit(MASTER_PID, 0);
     }
 
     /// @notice Withdraw without caring about rewards. EMERGENCY ONLY.

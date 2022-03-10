@@ -8,7 +8,7 @@ import "@boringcrypto/boring-solidity/contracts/BoringBatchable.sol";
 import "@boringcrypto/boring-solidity/contracts/BoringOwnable.sol";
 import "./libraries/SignedSafeMath.sol";
 import "./interfaces/IRewarder.sol";
-import "./interfaces/IMasterChef.sol";
+import "./interfaces/IZapDirector.sol";
 
 interface IMigratorChef {
     // Take the current LP token address and return the new LP token address.
