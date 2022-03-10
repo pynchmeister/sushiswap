@@ -67,8 +67,8 @@ describe("ZapDirectorV2", function () {
     })
   })
 
-  describe("PendingSushi", function () {
-    it("PendingSushi should equal ExpectedSushi", async function () {
+  describe("PendingGZap", function () {
+    it("PendingGZap should equal ExpectedGZap", async function () {
       await this.chef2.add(10, this.rlp.address, this.rewarder.address)
       await this.rlp.approve(this.chef2.address, getBigNumber(10))
       let log = await this.chef2.deposit(0, getBigNumber(1), this.alice.address)
@@ -179,7 +179,7 @@ describe("ZapDirectorV2", function () {
   })
 
   describe("Harvest", function () {
-    it("Should give back the correct amount of SUSHI and reward", async function () {
+    it("Should give back the correct amount of GZAP and reward", async function () {
       await this.r.transfer(this.rewarder.address, getBigNumber(100000))
       await this.chef2.add(10, this.rlp.address, this.rewarder.address)
       await this.rlp.approve(this.chef2.address, getBigNumber(10))
@@ -202,7 +202,7 @@ describe("ZapDirectorV2", function () {
       await this.chef2.harvest(0, this.alice.address)
     })
 
-    it("Harvest for SUSHI-only pool", async function () {
+    it("Harvest for GZAP-only pool", async function () {
       await this.chef2.add(10, this.rlp.address, ADDRESS_ZERO)
       await this.rlp.approve(this.chef2.address, getBigNumber(10))
       expect(await this.chef2.lpToken(0)).to.be.equal(this.rlp.address)
