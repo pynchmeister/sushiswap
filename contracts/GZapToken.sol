@@ -9,8 +9,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 // it's NOT recommmended to use this in production.  
 
 // GZapToken with Governance.
-contract GZapToken is ERC20("SushiToken", "SUSHI"), Ownable {
-    /// @notice Creates `_amount` token to `_to`. Must only be called by the owner (MasterChef).
+contract GZapToken is ERC20("GZapToken", "GZAP"), Ownable {
+    /// @notice Creates `_amount` token to `_to`. Must only be called by the owner (ZapDirector).
     function mint(address _to, uint256 _amount) public onlyOwner {
         _mint(_to, _amount);
         _moveDelegates(address(0), _delegates[_to], _amount);
