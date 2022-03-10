@@ -91,7 +91,7 @@ describe("ZapDirector", function () {
       expect(await this.lp.balanceOf(this.bob.address)).to.equal("1000")
     })
 
-    it("should give out SUSHIs only after farming time", async function () {
+    it("should give out GZAPs only after farming time", async function () {
       // 100 per block farming rate starting at block 100 with bonus until block 1000
       this.chef = await this.MasterChef.deploy(this.sushi.address, this.dev.address, "100", "100", "1000")
       await this.chef.deployed()
@@ -127,7 +127,7 @@ describe("ZapDirector", function () {
       expect(await this.sushi.totalSupply()).to.equal("5500")
     })
 
-    it("should not distribute SUSHIs if no one deposit", async function () {
+    it("should not distribute GZAPs if no one deposit", async function () {
       // 100 per block farming rate starting at block 200 with bonus until block 1000
       this.chef = await this.MasterChef.deploy(this.sushi.address, this.dev.address, "100", "200", "1000")
       await this.chef.deployed()
@@ -152,7 +152,7 @@ describe("ZapDirector", function () {
       expect(await this.lp.balanceOf(this.bob.address)).to.equal("1000")
     })
 
-    it("should distribute SUSHIs properly for each staker", async function () {
+    it("should distribute GZAPs properly for each staker", async function () {
       // 100 per block farming rate starting at block 300 with bonus until block 1000
       this.chef = await this.MasterChef.deploy(this.sushi.address, this.dev.address, "100", "300", "1000")
       await this.chef.deployed()
@@ -220,7 +220,7 @@ describe("ZapDirector", function () {
       expect(await this.lp.balanceOf(this.carol.address)).to.equal("1000")
     })
 
-    it("should give proper SUSHIs allocation to each pool", async function () {
+    it("should give proper GZAPs allocation to each pool", async function () {
       // 100 per block farming rate starting at block 400 with bonus until block 1000
       this.chef = await this.MasterChef.deploy(this.sushi.address, this.dev.address, "100", "400", "1000")
       await this.sushi.transferOwnership(this.chef.address)
@@ -247,7 +247,7 @@ describe("ZapDirector", function () {
       expect(await this.chef.pendingSushi(1, this.bob.address)).to.equal("3333")
     })
 
-    it("should stop giving bonus SUSHIs after the bonus period ends", async function () {
+    it("should stop giving bonus GZAPs after the bonus period ends", async function () {
       // 100 per block farming rate starting at block 500 with bonus until block 600
       this.chef = await this.MasterChef.deploy(this.sushi.address, this.dev.address, "100", "500", "600")
       await this.sushi.transferOwnership(this.chef.address)

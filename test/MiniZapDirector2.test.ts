@@ -7,7 +7,7 @@ const { BigNumber } = require("ethers")
 
 describe("MiniZapDirector2", function () {
   before(async function () {
-    await prepare(this, ["MiniChefV2", "SushiToken", "ERC20Mock", "RewarderMock", "RewarderBrokenMock"])
+    await prepare(this, ["MiniZapDirector2", "SushiToken", "ERC20Mock", "RewarderMock", "RewarderBrokenMock"])
     await deploy(this, [["brokenRewarder", this.RewarderBrokenMock]])
   })
 
@@ -17,7 +17,7 @@ describe("MiniZapDirector2", function () {
     await deploy(this, [
       ["lp", this.ERC20Mock, ["LP Token", "LPT", getBigNumber(10)]],
       ["dummy", this.ERC20Mock, ["Dummy", "DummyT", getBigNumber(10)]],
-      ["chef", this.MiniChefV2, [this.sushi.address]],
+      ["chef", this.MiniZapDirector2, [this.sushi.address]],
       ["rlp", this.ERC20Mock, ["LP", "rLPT", getBigNumber(10)]],
       ["r", this.ERC20Mock, ["Reward", "RewardT", getBigNumber(100000)]],
     ])
@@ -57,8 +57,8 @@ describe("MiniZapDirector2", function () {
     })
   })
 
-  describe("PendingGzap", function () {
-    it("PendingGZap should equal ExpectedSushi", async function () {
+  describe("PendingGZap", function () {
+    it("PendingGZap should equal ExpectedGZap", async function () {
       await this.chef.add(10, this.rlp.address, this.rewarder.address)
       await this.rlp.approve(this.chef.address, getBigNumber(10))
       let log = await this.chef.deposit(0, getBigNumber(1), this.alice.address)
@@ -173,7 +173,7 @@ describe("MiniZapDirector2", function () {
   })
 
   describe("Harvest", function () {
-    it("Should give back the correct amount of SUSHI and reward", async function () {
+    it("Should give back the correct amount of GZAP and reward", async function () {
       await this.r.transfer(this.rewarder.address, getBigNumber(100000))
       await this.chef.add(10, this.rlp.address, this.rewarder.address)
       await this.rlp.approve(this.chef.address, getBigNumber(10))
