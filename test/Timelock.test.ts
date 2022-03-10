@@ -11,14 +11,14 @@ describe("Timelock", function () {
     this.dev = this.signers[3]
     this.minter = this.signers[4]
 
-    this.SushiToken = await ethers.getContractFactory("SushiToken")
+    this.GZapToken = await ethers.getContractFactory("GZapToken")
     this.Timelock = await ethers.getContractFactory("Timelock")
     this.ERC20Mock = await ethers.getContractFactory("ERC20Mock", this.minter)
     this.ZapDirector = await ethers.getContractFactory("ZapDirector")
   })
 
   beforeEach(async function () {
-    this.sushi = await this.SushiToken.deploy()
+    this.sushi = await this.GZapToken.deploy()
     this.timelock = await this.Timelock.deploy(this.bob.address, "259200")
   })
 

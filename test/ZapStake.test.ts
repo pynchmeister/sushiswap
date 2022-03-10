@@ -3,7 +3,7 @@ import { expect } from "chai";
 
 describe("ZapStake", function () {
   before(async function () {
-    this.SushiToken = await ethers.getContractFactory("SushiToken")
+    this.GZapToken = await ethers.getContractFactory("GZapToken")
     this.SushiBar = await ethers.getContractFactory("ZapStake")
 
     this.signers = await ethers.getSigners()
@@ -13,7 +13,7 @@ describe("ZapStake", function () {
   })
 
   beforeEach(async function () {
-    this.sushi = await this.SushiToken.deploy()
+    this.sushi = await this.GZapToken.deploy()
     this.bar = await this.SushiBar.deploy(this.sushi.address)
     this.sushi.mint(this.alice.address, "100")
     this.sushi.mint(this.bob.address, "100")

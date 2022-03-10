@@ -3,12 +3,12 @@ import { assert, expect } from "chai"
 
 describe("ZapDirectorV2", function () {
   before(async function () {
-    await prepare(this, ["ZapDirector", "SushiToken", "ERC20Mock", "ZapDirectorV2", "RewarderMock", "RewarderBrokenMock"])
+    await prepare(this, ["ZapDirector", "GZapToken", "ERC20Mock", "ZapDirectorV2", "RewarderMock", "RewarderBrokenMock"])
     await deploy(this, [["brokenRewarder", this.RewarderBrokenMock]])
   })
 
   beforeEach(async function () {
-    await deploy(this, [["sushi", this.SushiToken]])
+    await deploy(this, [["sushi", this.GZapToken]])
 
     await deploy(this, [
       ["lp", this.ERC20Mock, ["LP Token", "LPT", getBigNumber(10)]],

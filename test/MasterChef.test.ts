@@ -13,12 +13,12 @@ describe("ZapDirector", function () {
     this.minter = this.signers[4]
 
     this.MasterChef = await ethers.getContractFactory("ZapDirector")
-    this.SushiToken = await ethers.getContractFactory("SushiToken")
+    this.GZapToken = await ethers.getContractFactory("GZapToken")
     this.ERC20Mock = await ethers.getContractFactory("ERC20Mock", this.minter)
   })
 
   beforeEach(async function () {
-    this.sushi = await this.SushiToken.deploy()
+    this.sushi = await this.GZapToken.deploy()
     await this.sushi.deployed()
   })
 
