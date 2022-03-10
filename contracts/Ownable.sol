@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
-// Audit on 5-Jan-2021 by Keno and BoringCrypto
 
 // P1 - P3: OK
 pragma solidity 0.6.12;
 
 // Source: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol + Claimable.sol
-// Edited by BoringCrypto
 
 // T1 - T4: OK
 contract OwnableData {
