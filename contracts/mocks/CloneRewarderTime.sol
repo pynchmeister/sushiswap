@@ -7,7 +7,7 @@ import "@boringcrypto/boring-solidity/contracts/libraries/BoringERC20.sol";
 import "@boringcrypto/boring-solidity/contracts/libraries/BoringMath.sol";
 import "@boringcrypto/boring-solidity/contracts/BoringOwnable.sol";
 
-interface IMasterChefV2 {
+interface IZapDirectorV2 {
     function lpToken(uint256 pid) external view returns (IERC20 _lpToken);
 }
 
@@ -44,7 +44,7 @@ contract CloneRewarderTime is IRewarder,  BoringOwnable{
     IERC20 public masterLpToken;
     uint256 private constant ACC_TOKEN_PRECISION = 1e12;
 
-    address public immutable MASTERCHEF_V2;
+    address public immutable ZAPDIRECTOR_V2;
 
     uint256 internal unlocked;
     modifier lock() {
@@ -59,8 +59,8 @@ contract CloneRewarderTime is IRewarder,  BoringOwnable{
     event LogRewardPerSecond(uint256 rewardPerSecond);
     event LogInit(IERC20 indexed rewardToken, address owner, uint256 rewardPerSecond, IERC20 indexed masterLpToken);
 
-    constructor (address _MASTERCHEF_V2) public {
-        MASTERCHEF_V2 = _MASTERCHEF_V2;
+    constructor (address _ZAPDIRECTOR_V2) public {
+        ZAPDIRECTOR_V2 = _ZAPDIRECTOR_V2;
     }
 
     /// @notice Serves as the constructor for clones, as clones can't have a regular constructor
@@ -73,8 +73,8 @@ contract CloneRewarderTime is IRewarder,  BoringOwnable{
         emit LogInit(rewardToken, owner, rewardPerSecond, masterLpToken);
     }
 
-    function onGZapReward (uint256 pid, address _user, address to, uint256, uint256 lpTokenAmount) onlyMCV2 lock override external {
-        require(IMasterChefV2(MASTERCHEF_V2).lpToken(pid) == masterLpToken);
+    function onGZapReward (uint256 pid, address _user, address to, uint256, uint256 lpTokenAmount) onlyZDV2 lock override external {
+        require(IZapDirectorV2(ZAPDIRECTOR_V2).lpToken(pid) == masterLpToken);
 
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][_user];
@@ -112,8 +112,8 @@ contract CloneRewarderTime is IRewarder,  BoringOwnable{
         return (_rewardRates);
     }
 
-    /// @notice Sets the sushi per second to be distributed. Can only be called by the owner.
-    /// @param _rewardPerSecond The amount of Sushi to be distributed per second.
+    /// @notice Sets the gzap per second to be distributed. Can only be called by the owner.
+    /// @param _rewardPerSecond The amount of Gzap to be distributed per second.
     function setRewardPerSecond(uint256 _rewardPerSecond) public onlyOwner {
         rewardPerSecond = _rewardPerSecond;
         emit LogRewardPerSecond(_rewardPerSecond);
@@ -133,10 +133,10 @@ contract CloneRewarderTime is IRewarder,  BoringOwnable{
         }
     }
 
-    modifier onlyMCV2 {
+    modifier onlyZDV2 {
         require(
-            msg.sender == MASTERCHEF_V2,
-            "Only MCV2 can call this function."
+            msg.sender == ZAPDIRECTOR_V2,
+            "Only ZDV2 can call this function."
         );
         _;
     }
@@ -149,7 +149,7 @@ contract CloneRewarderTime is IRewarder,  BoringOwnable{
         PoolInfo memory pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
         uint256 accToken1PerShare = pool.accToken1PerShare;
-        uint256 lpSupply = IMasterChefV2(MASTERCHEF_V2).lpToken(_pid).balanceOf(MASTERCHEF_V2);
+        uint256 lpSupply = IZapDirectorV2(ZAPDIRECTOR_V2).lpToken(_pid).balanceOf(ZAPDIRECTOR_V2);
         if (block.timestamp > pool.lastRewardTime && lpSupply != 0) {
             uint256 time = block.timestamp.sub(pool.lastRewardTime);
             uint256 sushiReward = time.mul(rewardPerSecond);
@@ -164,7 +164,7 @@ contract CloneRewarderTime is IRewarder,  BoringOwnable{
     function updatePool(uint256 pid) public returns (PoolInfo memory pool) {
         pool = poolInfo[pid];
         if (block.timestamp > pool.lastRewardTime) {
-            uint256 lpSupply = IMasterChefV2(MASTERCHEF_V2).lpToken(pid).balanceOf(MASTERCHEF_V2);
+            uint256 lpSupply = IZapDirectorV2(ZAPDIRECTOR_V2).lpToken(pid).balanceOf(ZAPDIRECTOR_V2);
 
             if (lpSupply > 0) {
                 uint256 time = block.timestamp.sub(pool.lastRewardTime);

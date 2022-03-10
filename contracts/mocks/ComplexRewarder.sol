@@ -15,7 +15,7 @@ contract ComplexRewarder is IRewarder, BoringOwnable{
 
     IERC20 private immutable rewardToken;
 
-    /// @notice Info of each MCV2 user.
+    /// @notice Info of each ZDV2 user.
     /// `amount` LP token amount the user has provided.
     /// `rewardDebt` The amount of GZAP entitled to the user.
     struct UserInfo {
@@ -24,11 +24,11 @@ contract ComplexRewarder is IRewarder, BoringOwnable{
         uint256 unpaidRewards;
     }
 
-    /// @notice Info of each MCV2 pool.
+    /// @notice Info of each ZDV2 pool.
     /// `allocPoint` The amount of allocation points assigned to the pool.
     /// Also known as the amount of GZAP to distribute per block.
     struct PoolInfo {
-        uint128 accSushiPerShare;
+        uint128 accGZapPerShare;
         uint64 lastRewardBlock;
         uint64 allocPoint;
     }
@@ -46,7 +46,7 @@ contract ComplexRewarder is IRewarder, BoringOwnable{
     uint256 public tokenPerBlock;
     uint256 private constant ACC_TOKEN_PRECISION = 1e12;
 
-    address private immutable MASTERCHEF_V2;
+    address private immutable ZAPDIRECTOR_V2;
 
     uint256 internal unlocked;
     modifier lock() {
@@ -59,24 +59,24 @@ contract ComplexRewarder is IRewarder, BoringOwnable{
     event LogOnReward(address indexed user, uint256 indexed pid, uint256 amount, address indexed to);
     event LogPoolAddition(uint256 indexed pid, uint256 allocPoint);
     event LogSetPool(uint256 indexed pid, uint256 allocPoint);
-    event LogUpdatePool(uint256 indexed pid, uint64 lastRewardBlock, uint256 lpSupply, uint256 accSushiPerShare);
+    event LogUpdatePool(uint256 indexed pid, uint64 lastRewardBlock, uint256 lpSupply, uint256 accGZapPerShare);
     event LogInit();
 
-    constructor (IERC20 _rewardToken, uint256 _tokenPerBlock, address _MASTERCHEF_V2) public {
+    constructor (IERC20 _rewardToken, uint256 _tokenPerBlock, address _ZAPDIRECTOR_V2) public {
         rewardToken = _rewardToken;
         tokenPerBlock = _tokenPerBlock;
-        MASTERCHEF_V2 = _MASTERCHEF_V2;
+        ZAPDIRECTOR_V2 = _ZAPDIRECTOR_V2;
         unlocked = 1;
     }
 
 
-    function onGZapReward (uint256 pid, address _user, address to, uint256, uint256 lpToken) onlyMCV2 lock override external {
+    function onGZapReward (uint256 pid, address _user, address to, uint256, uint256 lpToken) onlyZDV2 lock override external {
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][_user];
         uint256 pending;
         if (user.amount > 0) {
             pending =
-                (user.amount.mul(pool.accSushiPerShare) / ACC_TOKEN_PRECISION).sub(
+                (user.amount.mul(pool.accGZapPerShare) / ACC_TOKEN_PRECISION).sub(
                     user.rewardDebt
                 ).add(user.unpaidRewards);
             uint256 balance = rewardToken.balanceOf(address(this));
@@ -89,7 +89,7 @@ contract ComplexRewarder is IRewarder, BoringOwnable{
             }
         }
         user.amount = lpToken;
-        user.rewardDebt = lpToken.mul(pool.accSushiPerShare) / ACC_TOKEN_PRECISION;
+        user.rewardDebt = lpToken.mul(pool.accGZapPerShare) / ACC_TOKEN_PRECISION;
         emit LogOnReward(_user, pid, pending - user.unpaidRewards, to);
     }
 
@@ -101,15 +101,15 @@ contract ComplexRewarder is IRewarder, BoringOwnable{
         return (_rewardTokens, _rewardAmounts);
     }
 
-    modifier onlyMCV2 {
+    modifier onlyZDV2 {
         require(
-            msg.sender == MASTERCHEF_V2,
-            "Only MCV2 can call this function."
+            msg.sender == ZAPDIRECTOR_V2,
+            "Only ZDV2 can call this function."
         );
         _;
     }
 
-    /// @notice Returns the number of MCV2 pools.
+    /// @notice Returns the number of ZDV2 pools.
     function poolLength() public view returns (uint256 pools) {
         pools = poolIds.length;
     }
@@ -117,7 +117,7 @@ contract ComplexRewarder is IRewarder, BoringOwnable{
     /// @notice Add a new LP to the pool.  Can only be called by the owner.
     /// DO NOT add the same LP token more than once. Rewards will be messed up if you do.
     /// @param allocPoint AP of the new pool.
-    /// @param _pid Pid on MCV2
+    /// @param _pid Pid on ZDV2
     function add(uint256 allocPoint, uint256 _pid) public onlyOwner {
         require(poolInfo[_pid].lastRewardBlock == 0, "Pool already exists");
         uint256 lastRewardBlock = block.number;
@@ -126,13 +126,13 @@ contract ComplexRewarder is IRewarder, BoringOwnable{
         poolInfo[_pid] = PoolInfo({
             allocPoint: allocPoint.to64(),
             lastRewardBlock: lastRewardBlock.to64(),
-            accSushiPerShare: 0
+            accGZapPerShare: 0
         });
         poolIds.push(_pid);
         emit LogPoolAddition(_pid, allocPoint);
     }
 
-    /// @notice Update the given pool's SUSHI allocation point and `IRewarder` contract. Can only be called by the owner.
+    /// @notice Update the given pool's GZAP allocation point and `IRewarder` contract. Can only be called by the owner.
     /// @param _pid The index of the pool. See `poolInfo`.
     /// @param _allocPoint New AP of the pool.
     function set(uint256 _pid, uint256 _allocPoint) public onlyOwner {
@@ -158,18 +158,18 @@ contract ComplexRewarder is IRewarder, BoringOwnable{
     /// @notice View function to see pending Token
     /// @param _pid The index of the pool. See `poolInfo`.
     /// @param _user Address of user.
-    /// @return pending SUSHI reward for a given user.
+    /// @return pending GZAP reward for a given user.
     function pendingToken(uint256 _pid, address _user) public view returns (uint256 pending) {
         PoolInfo memory pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
-        uint256 accSushiPerShare = pool.accSushiPerShare;
-        uint256 lpSupply = ZapDirectorV2(MASTERCHEF_V2).lpToken(_pid).balanceOf(MASTERCHEF_V2);
+        uint256 accGZapPerShare = pool.accGZapPerShare;
+        uint256 lpSupply = ZapDirectorV2(ZAPDIRECTOR_V2).lpToken(_pid).balanceOf(ZAPDIRECTOR_V2);
         if (block.number > pool.lastRewardBlock && lpSupply != 0) {
             uint256 blocks = block.number.sub(pool.lastRewardBlock);
-            uint256 sushiReward = blocks.mul(tokenPerBlock).mul(pool.allocPoint) / totalAllocPoint;
-            accSushiPerShare = accSushiPerShare.add(sushiReward.mul(ACC_TOKEN_PRECISION) / lpSupply);
+            uint256 gzapReward = blocks.mul(tokenPerBlock).mul(pool.allocPoint) / totalAllocPoint;
+            accGZapPerShare = accGZapPerShare.add(gzapReward.mul(ACC_TOKEN_PRECISION) / lpSupply);
         }
-        pending = (user.amount.mul(accSushiPerShare) / ACC_TOKEN_PRECISION).sub(user.rewardDebt).add(user.unpaidRewards);
+        pending = (user.amount.mul(accGZapPerShare) / ACC_TOKEN_PRECISION).sub(user.rewardDebt).add(user.unpaidRewards);
     }
 
     /// @notice Update reward variables for all pools. Be careful of gas spending!
@@ -188,16 +188,16 @@ contract ComplexRewarder is IRewarder, BoringOwnable{
         pool = poolInfo[pid];
         require(pool.lastRewardBlock != 0, "Pool does not exist");
         if (block.number > pool.lastRewardBlock) {
-            uint256 lpSupply = ZapDirectorV2(MASTERCHEF_V2).lpToken(pid).balanceOf(MASTERCHEF_V2);
+            uint256 lpSupply = ZapDirectorV2(ZAPDIRECTOR_V2).lpToken(pid).balanceOf(ZAPDIRECTOR_V2);
 
             if (lpSupply > 0) {
                 uint256 blocks = block.number.sub(pool.lastRewardBlock);
-                uint256 sushiReward = blocks.mul(tokenPerBlock).mul(pool.allocPoint) / totalAllocPoint;
-                pool.accSushiPerShare = pool.accSushiPerShare.add((sushiReward.mul(ACC_TOKEN_PRECISION) / lpSupply).to128());
+                uint256 gzapReward = blocks.mul(tokenPerBlock).mul(pool.allocPoint) / totalAllocPoint;
+                pool.accGZapPerShare = pool.accGZapPerShare.add((gzapReward.mul(ACC_TOKEN_PRECISION) / lpSupply).to128());
             }
             pool.lastRewardBlock = block.number.to64();
             poolInfo[pid] = pool;
-            emit LogUpdatePool(pid, pool.lastRewardBlock, lpSupply, pool.accSushiPerShare);
+            emit LogUpdatePool(pid, pool.lastRewardBlock, lpSupply, pool.accGZapPerShare);
         }
     }
 
