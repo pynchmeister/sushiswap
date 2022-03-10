@@ -13,7 +13,7 @@ describe("Migrator", function () {
     this.UniswapV2Pair = await ethers.getContractFactory("UniswapV2Pair")
     this.ERC20Mock = await ethers.getContractFactory("ERC20Mock", this.minter)
     this.SushiToken = await ethers.getContractFactory("SushiToken")
-    this.MasterChef = await ethers.getContractFactory("MasterChef")
+    this.MasterChef = await ethers.getContractFactory("ZapDirector")
     this.Migrator = await ethers.getContractFactory("Migrator")
   })
 

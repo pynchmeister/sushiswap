@@ -14,7 +14,7 @@ describe("Timelock", function () {
     this.SushiToken = await ethers.getContractFactory("SushiToken")
     this.Timelock = await ethers.getContractFactory("Timelock")
     this.ERC20Mock = await ethers.getContractFactory("ERC20Mock", this.minter)
-    this.MasterChef = await ethers.getContractFactory("MasterChef")
+    this.ZapDirector = await ethers.getContractFactory("ZapDirector")
   })
 
   beforeEach(async function () {
@@ -59,10 +59,10 @@ describe("Timelock", function () {
     expect(await this.sushi.owner()).to.equal(this.carol.address)
   })
 
-  it("should also work with MasterChef", async function () {
+  it("should also work with ZapDirector", async function () {
     this.lp1 = await this.ERC20Mock.deploy("LPToken", "LP", "10000000000")
     this.lp2 = await this.ERC20Mock.deploy("LPToken", "LP", "10000000000")
-    this.chef = await this.MasterChef.deploy(this.sushi.address, this.dev.address, "1000", "0", "1000")
+    this.chef = await this.ZapDirector.deploy(this.sushi.address, this.dev.address, "1000", "0", "1000")
     await this.sushi.transferOwnership(this.chef.address)
     await this.chef.add("100", this.lp1.address, true)
     await this.chef.transferOwnership(this.timelock.address)
