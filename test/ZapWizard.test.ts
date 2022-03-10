@@ -3,7 +3,7 @@ import { prepare, deploy, getBigNumber, createSLP } from "./utilities"
 
 describe("ZapWizard", function () {
   before(async function () {
-    await prepare(this, ["SushiMaker", "ZapStake", "SushiMakerExploitMock", "ERC20Mock", "UniswapV2Factory", "UniswapV2Pair"])
+    await prepare(this, ["ZapWizard", "ZapStake", "SushiMakerExploitMock", "ERC20Mock", "UniswapV2Factory", "UniswapV2Pair"])
   })
 
   beforeEach(async function () {
@@ -17,7 +17,7 @@ describe("ZapWizard", function () {
       ["factory", this.UniswapV2Factory, [this.alice.address]],
     ])
     await deploy(this, [["bar", this.ZapStake, [this.sushi.address]]])
-    await deploy(this, [["sushiMaker", this.SushiMaker, [this.factory.address, this.bar.address, this.sushi.address, this.weth.address]]])
+    await deploy(this, [["sushiMaker", this.ZapWizard, [this.factory.address, this.bar.address, this.sushi.address, this.weth.address]]])
     await deploy(this, [["exploiter", this.SushiMakerExploitMock, [this.sushiMaker.address]]])
     await createSLP(this, "sushiEth", this.sushi, this.weth, getBigNumber(10))
     await createSLP(this, "strudelEth", this.strudel, this.weth, getBigNumber(10))

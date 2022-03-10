@@ -9,8 +9,8 @@ import "./uniswapv2/interfaces/IUniswapV2Router01.sol";
 import "./uniswapv2/interfaces/IUniswapV2Factory.sol";
 import "./uniswapv2/libraries/UniswapV2Library.sol";
 
-// SushiRoll helps your migrate your existing Uniswap LP tokens to SushiSwap LP ones
-contract SushiRoll {
+// ZapMigrate helps your migrate your existing Uniswap LP tokens to SushiSwap LP ones
+contract ZapMigrate {
     using SafeERC20 for IERC20;
 
     IUniswapV2Router01 public oldRouter;

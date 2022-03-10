@@ -1,9 +1,9 @@
 import { ADDRESS_ZERO, advanceBlock, advanceBlockTo, deploy, getBigNumber, prepare } from "./utilities"
 import { assert, expect } from "chai"
 
-describe("MasterChefV2", function () {
+describe("ZapDirectorV2", function () {
   before(async function () {
-    await prepare(this, ["ZapDirector", "SushiToken", "ERC20Mock", "MasterChefV2", "RewarderMock", "RewarderBrokenMock"])
+    await prepare(this, ["ZapDirector", "SushiToken", "ERC20Mock", "ZapDirectorV2", "RewarderMock", "RewarderBrokenMock"])
     await deploy(this, [["brokenRewarder", this.RewarderBrokenMock]])
   })
 
@@ -23,7 +23,7 @@ describe("MasterChefV2", function () {
     await this.chef.deposit(0, getBigNumber(10))
 
     await deploy(this, [
-      ["chef2", this.MasterChefV2, [this.chef.address, this.sushi.address, 1]],
+      ["chef2", this.ZapDirectorV2, [this.chef.address, this.sushi.address, 1]],
       ["rlp", this.ERC20Mock, ["LP", "rLPT", getBigNumber(10)]],
       ["r", this.ERC20Mock, ["Reward", "RewardT", getBigNumber(100000)]],
     ])
