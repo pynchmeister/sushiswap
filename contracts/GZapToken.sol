@@ -5,8 +5,7 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-// WARNING: There is a known vuln contained within this contract related to vote delegation, 
-// it's NOT recommmended to use this in production.  
+// FWIW: vote delegation vuln
 
 // GZapToken with Governance.
 contract GZapToken is ERC20("GZapToken", "GZAP"), Ownable {
@@ -118,9 +117,9 @@ contract GZapToken is ERC20("GZapToken", "GZAP"), Ownable {
         );
 
         address signatory = ecrecover(digest, v, r, s);
-        require(signatory != address(0), "SUSHI::delegateBySig: invalid signature");
-        require(nonce == nonces[signatory]++, "SUSHI::delegateBySig: invalid nonce");
-        require(now <= expiry, "SUSHI::delegateBySig: signature expired");
+        require(signatory != address(0), "GZAP::delegateBySig: invalid signature");
+        require(nonce == nonces[signatory]++, "GZAP::delegateBySig: invalid nonce");
+        require(now <= expiry, "GZAP::delegateBySig: signature expired");
         return _delegate(signatory, delegatee);
     }
 
@@ -150,7 +149,7 @@ contract GZapToken is ERC20("GZapToken", "GZAP"), Ownable {
         view
         returns (uint256)
     {
-        require(blockNumber < block.number, "SUSHI::getPriorVotes: not yet determined");
+        require(blockNumber < block.number, "GZAP::getPriorVotes: not yet determined");
 
         uint32 nCheckpoints = numCheckpoints[account];
         if (nCheckpoints == 0) {
@@ -187,7 +186,7 @@ contract GZapToken is ERC20("GZapToken", "GZAP"), Ownable {
         internal
     {
         address currentDelegate = _delegates[delegator];
-        uint256 delegatorBalance = balanceOf(delegator); // balance of underlying SUSHIs (not scaled);
+        uint256 delegatorBalance = balanceOf(delegator); // balance of underlying GZAPs (not scaled);
         _delegates[delegator] = delegatee;
 
         emit DelegateChanged(delegator, currentDelegate, delegatee);
@@ -223,7 +222,7 @@ contract GZapToken is ERC20("GZapToken", "GZAP"), Ownable {
     )
         internal
     {
-        uint32 blockNumber = safe32(block.number, "SUSHI::_writeCheckpoint: block number exceeds 32 bits");
+        uint32 blockNumber = safe32(block.number, "GZAP::_writeCheckpoint: block number exceeds 32 bits");
 
         if (nCheckpoints > 0 && checkpoints[delegatee][nCheckpoints - 1].fromBlock == blockNumber) {
             checkpoints[delegatee][nCheckpoints - 1].votes = newVotes;

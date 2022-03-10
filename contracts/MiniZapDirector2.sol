@@ -10,17 +10,17 @@ import "./libraries/SignedSafeMath.sol";
 import "./interfaces/IRewarder.sol";
 import "./interfaces/IZapDirector.sol";
 
-interface IMigratorChef {
+interface IMigratorDirector {
     // Take the current LP token address and return the new LP token address.
     // Migrator should have full access to the caller's LP token.
     function migrate(IERC20 token) external returns (IERC20);
 }
 
-/// @notice The (older) MasterChef contract gives out a constant number of SUSHI tokens per block.
+/// @notice The (older) ZapDirector contract gives out a constant number of GZAP tokens per block.
 /// It is the only address with minting rights for SUSHI.
-/// The idea for this MasterChef V2 (MCV2) contract is therefore to be the owner of a dummy token
-/// that is deposited into the MasterChef V1 (MCV1) contract.
-/// The allocation point for this pool on MCV1 is the total allocation point for all pools that receive double incentives.
+/// The idea for this ZapDirector V2 (ZDV2) contract is therefore to be the owner of a dummy token
+/// that is deposited into the ZapDirector V1 (ZDV1) contract.
+/// The allocation point for this pool on ZDV1 is the total allocation point for all pools that receive double incentives.
 contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
     using BoringMath for uint256;
     using BoringMath128 for uint128;
