@@ -12,7 +12,7 @@ describe("ZapDirector", function () {
     this.dev = this.signers[3]
     this.minter = this.signers[4]
 
-    this.MasterChef = await ethers.getContractFactory("ZapDirector")
+    this.ZapDirector = await ethers.getContractFactory("ZapDirector")
     this.GZapToken = await ethers.getContractFactory("GZapToken")
     this.ERC20Mock = await ethers.getContractFactory("ERC20Mock", this.minter)
   })
@@ -23,7 +23,7 @@ describe("ZapDirector", function () {
   })
 
   it("should set correct state variables", async function () {
-    this.chef = await this.MasterChef.deploy(this.sushi.address, this.dev.address, "1000", "0", "1000")
+    this.chef = await this.ZapDirector.deploy(this.sushi.address, this.dev.address, "1000", "0", "1000")
     await this.chef.deployed()
 
     await this.sushi.transferOwnership(this.chef.address)
@@ -38,7 +38,7 @@ describe("ZapDirector", function () {
   })
 
   it("should allow dev and only dev to update dev", async function () {
-    this.chef = await this.MasterChef.deploy(this.sushi.address, this.dev.address, "1000", "0", "1000")
+    this.chef = await this.ZapDirector.deploy(this.sushi.address, this.dev.address, "1000", "0", "1000")
     await this.chef.deployed()
 
     expect(await this.chef.devaddr()).to.equal(this.dev.address)
@@ -75,7 +75,7 @@ describe("ZapDirector", function () {
 
     it("should allow emergency withdraw", async function () {
       // 100 per block farming rate starting at block 100 with bonus until block 1000
-      this.chef = await this.MasterChef.deploy(this.sushi.address, this.dev.address, "100", "100", "1000")
+      this.chef = await this.ZapDirector.deploy(this.sushi.address, this.dev.address, "100", "100", "1000")
       await this.chef.deployed()
 
       await this.chef.add("100", this.lp.address, true)
@@ -93,7 +93,7 @@ describe("ZapDirector", function () {
 
     it("should give out GZAPs only after farming time", async function () {
       // 100 per block farming rate starting at block 100 with bonus until block 1000
-      this.chef = await this.MasterChef.deploy(this.sushi.address, this.dev.address, "100", "100", "1000")
+      this.chef = await this.ZapDirector.deploy(this.sushi.address, this.dev.address, "100", "100", "1000")
       await this.chef.deployed()
 
       await this.sushi.transferOwnership(this.chef.address)
@@ -129,7 +129,7 @@ describe("ZapDirector", function () {
 
     it("should not distribute GZAPs if no one deposit", async function () {
       // 100 per block farming rate starting at block 200 with bonus until block 1000
-      this.chef = await this.MasterChef.deploy(this.sushi.address, this.dev.address, "100", "200", "1000")
+      this.chef = await this.ZapDirector.deploy(this.sushi.address, this.dev.address, "100", "200", "1000")
       await this.chef.deployed()
       await this.sushi.transferOwnership(this.chef.address)
       await this.chef.add("100", this.lp.address, true)
@@ -154,7 +154,7 @@ describe("ZapDirector", function () {
 
     it("should distribute GZAPs properly for each staker", async function () {
       // 100 per block farming rate starting at block 300 with bonus until block 1000
-      this.chef = await this.MasterChef.deploy(this.sushi.address, this.dev.address, "100", "300", "1000")
+      this.chef = await this.ZapDirector.deploy(this.sushi.address, this.dev.address, "100", "300", "1000")
       await this.chef.deployed()
       await this.sushi.transferOwnership(this.chef.address)
       await this.chef.add("100", this.lp.address, true)
@@ -222,7 +222,7 @@ describe("ZapDirector", function () {
 
     it("should give proper GZAPs allocation to each pool", async function () {
       // 100 per block farming rate starting at block 400 with bonus until block 1000
-      this.chef = await this.MasterChef.deploy(this.sushi.address, this.dev.address, "100", "400", "1000")
+      this.chef = await this.ZapDirector.deploy(this.sushi.address, this.dev.address, "100", "400", "1000")
       await this.sushi.transferOwnership(this.chef.address)
       await this.lp.connect(this.alice).approve(this.chef.address, "1000", { from: this.alice.address })
       await this.lp2.connect(this.bob).approve(this.chef.address, "1000", { from: this.bob.address })
@@ -249,7 +249,7 @@ describe("ZapDirector", function () {
 
     it("should stop giving bonus GZAPs after the bonus period ends", async function () {
       // 100 per block farming rate starting at block 500 with bonus until block 600
-      this.chef = await this.MasterChef.deploy(this.sushi.address, this.dev.address, "100", "500", "600")
+      this.chef = await this.ZapDirector.deploy(this.sushi.address, this.dev.address, "100", "500", "600")
       await this.sushi.transferOwnership(this.chef.address)
       await this.lp.connect(this.alice).approve(this.chef.address, "1000", { from: this.alice.address })
       await this.chef.add("1", this.lp.address, true)
