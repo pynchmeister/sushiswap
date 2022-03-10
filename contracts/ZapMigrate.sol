@@ -9,7 +9,7 @@ import "./uniswapv2/interfaces/IUniswapV2Router01.sol";
 import "./uniswapv2/interfaces/IUniswapV2Factory.sol";
 import "./uniswapv2/libraries/UniswapV2Library.sol";
 
-// ZapMigrate helps your migrate your existing Uniswap LP tokens to SushiSwap LP ones
+// ZapMigrate helps your migrate your existing Uniswap LP tokens to ZSwap LP ones
 contract ZapMigrate {
     using SafeERC20 for IERC20;
 
@@ -84,8 +84,8 @@ contract ZapMigrate {
         (uint256 amount0, uint256 amount1) = pair.burn(address(this));
         (address token0,) = UniswapV2Library.sortTokens(tokenA, tokenB);
         (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);
-        require(amountA >= amountAMin, 'SushiRoll: INSUFFICIENT_A_AMOUNT');
-        require(amountB >= amountBMin, 'SushiRoll: INSUFFICIENT_B_AMOUNT');
+        require(amountA >= amountAMin, 'ZapMigrate: INSUFFICIENT_A_AMOUNT');
+        require(amountB >= amountBMin, 'ZapMigrate: INSUFFICIENT_B_AMOUNT');
     }
 
     // calculates the CREATE2 address for a pair without making any external calls
