@@ -219,7 +219,7 @@ contract ZapDirectorV2 is BoringOwnable, BoringBatchable {
         // Interactions
         IRewarder _rewarder = rewarder[pid];
         if (address(_rewarder) != address(0)) {
-            _rewarder.onSushiReward(pid, to, to, 0, user.amount);
+            _rewarder.onGZapReward(pid, to, to, 0, user.amount);
         }
 
         lpToken[pid].safeTransferFrom(msg.sender, address(this), amount);
@@ -242,7 +242,7 @@ contract ZapDirectorV2 is BoringOwnable, BoringBatchable {
         // Interactions
         IRewarder _rewarder = rewarder[pid];
         if (address(_rewarder) != address(0)) {
-            _rewarder.onSushiReward(pid, msg.sender, to, 0, user.amount);
+            _rewarder.onGZapReward(pid, msg.sender, to, 0, user.amount);
         }
         
         lpToken[pid].safeTransfer(to, amount);
@@ -269,7 +269,7 @@ contract ZapDirectorV2 is BoringOwnable, BoringBatchable {
         
         IRewarder _rewarder = rewarder[pid];
         if (address(_rewarder) != address(0)) {
-            _rewarder.onSushiReward( pid, msg.sender, to, _pendingSushi, user.amount);
+            _rewarder.onGZapReward( pid, msg.sender, to, _pendingSushi, user.amount);
         }
 
         emit Harvest(msg.sender, pid, _pendingSushi);
@@ -294,7 +294,7 @@ contract ZapDirectorV2 is BoringOwnable, BoringBatchable {
 
         IRewarder _rewarder = rewarder[pid];
         if (address(_rewarder) != address(0)) {
-            _rewarder.onSushiReward(pid, msg.sender, to, _pendingSushi, user.amount);
+            _rewarder.onGZapReward(pid, msg.sender, to, _pendingSushi, user.amount);
         }
 
         lpToken[pid].safeTransfer(to, amount);
@@ -319,7 +319,7 @@ contract ZapDirectorV2 is BoringOwnable, BoringBatchable {
 
         IRewarder _rewarder = rewarder[pid];
         if (address(_rewarder) != address(0)) {
-            _rewarder.onSushiReward(pid, msg.sender, to, 0, 0);
+            _rewarder.onGZapReward(pid, msg.sender, to, 0, 0);
         }
 
         // Note: transfer can fail or succeed if `amount` is zero.

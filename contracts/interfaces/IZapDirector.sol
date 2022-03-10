@@ -14,7 +14,7 @@ interface IZapDirector {
         IERC20 lpToken;           // Address of LP token contract.
         uint256 allocPoint;       // How many allocation points assigned to this pool. GZAP to distribute per block.
         uint256 lastRewardBlock;  // Last block number that GZAP distribution occurs.
-        uint256 accSushiPerShare; // Accumulated GZAP per share, times 1e12. See below.
+        uint256 accGZapPerShare; // Accumulated GZAP per share, times 1e12. See below.
     }
 
     function poolInfo(uint256 pid) external view returns (IZapDirector.PoolInfo memory);

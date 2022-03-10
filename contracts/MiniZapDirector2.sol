@@ -39,7 +39,7 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
     /// `allocPoint` The amount of allocation points assigned to the pool.
     /// Also known as the amount of SUSHI to distribute per block.
     struct PoolInfo {
-        uint128 accSushiPerShare;
+        uint128 accGZapPerShare;
         uint64 lastRewardTime;
         uint64 allocPoint;
     }
@@ -74,7 +74,7 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
     event Harvest(address indexed user, uint256 indexed pid, uint256 amount);
     event LogPoolAddition(uint256 indexed pid, uint256 allocPoint, IERC20 indexed lpToken, IRewarder indexed rewarder);
     event LogSetPool(uint256 indexed pid, uint256 allocPoint, IRewarder indexed rewarder, bool overwrite);
-    event LogUpdatePool(uint256 indexed pid, uint64 lastRewardTime, uint256 lpSupply, uint256 accSushiPerShare);
+    event LogUpdatePool(uint256 indexed pid, uint64 lastRewardTime, uint256 lpSupply, uint256 accGZapPerShare);
     event LogSushiPerSecond(uint256 sushiPerSecond);
 
     /// @param _sushi The SUSHI token contract address.
@@ -101,7 +101,7 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
         poolInfo.push(PoolInfo({
             allocPoint: allocPoint.to64(),
             lastRewardTime: block.timestamp.to64(),
-            accSushiPerShare: 0
+            accGZapPerShare: 0
         }));
         addedTokens[address(_lpToken)] = true;
         emit LogPoolAddition(lpToken.length.sub(1), allocPoint, _lpToken, _rewarder);
@@ -154,14 +154,14 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
     function pendingSushi(uint256 _pid, address _user) external view returns (uint256 pending) {
         PoolInfo memory pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
-        uint256 accSushiPerShare = pool.accSushiPerShare;
+        uint256 accGZapPerShare = pool.accGZapPerShare;
         uint256 lpSupply = lpToken[_pid].balanceOf(address(this));
         if (block.timestamp > pool.lastRewardTime && lpSupply != 0) {
             uint256 time = block.timestamp.sub(pool.lastRewardTime);
             uint256 sushiReward = time.mul(sushiPerSecond).mul(pool.allocPoint) / totalAllocPoint;
-            accSushiPerShare = accSushiPerShare.add(sushiReward.mul(ACC_SUSHI_PRECISION) / lpSupply);
+            accGZapPerShare = accGZapPerShare.add(sushiReward.mul(ACC_SUSHI_PRECISION) / lpSupply);
         }
-        pending = int256(user.amount.mul(accSushiPerShare) / ACC_SUSHI_PRECISION).sub(user.rewardDebt).toUInt256();
+        pending = int256(user.amount.mul(accGZapPerShare) / ACC_SUSHI_PRECISION).sub(user.rewardDebt).toUInt256();
     }
 
     /// @notice Update reward variables for all pools. Be careful of gas spending!
@@ -183,11 +183,11 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
             if (lpSupply > 0) {
                 uint256 time = block.timestamp.sub(pool.lastRewardTime);
                 uint256 sushiReward = time.mul(sushiPerSecond).mul(pool.allocPoint) / totalAllocPoint;
-                pool.accSushiPerShare = pool.accSushiPerShare.add((sushiReward.mul(ACC_SUSHI_PRECISION) / lpSupply).to128());
+                pool.accGZapPerShare = pool.accGZapPerShare.add((sushiReward.mul(ACC_SUSHI_PRECISION) / lpSupply).to128());
             }
             pool.lastRewardTime = block.timestamp.to64();
             poolInfo[pid] = pool;
-            emit LogUpdatePool(pid, pool.lastRewardTime, lpSupply, pool.accSushiPerShare);
+            emit LogUpdatePool(pid, pool.lastRewardTime, lpSupply, pool.accGZapPerShare);
         }
     }
 
@@ -201,12 +201,12 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
 
         // Effects
         user.amount = user.amount.add(amount);
-        user.rewardDebt = user.rewardDebt.add(int256(amount.mul(pool.accSushiPerShare) / ACC_SUSHI_PRECISION));
+        user.rewardDebt = user.rewardDebt.add(int256(amount.mul(pool.accGZapPerShare) / ACC_SUSHI_PRECISION));
 
         // Interactions
         IRewarder _rewarder = rewarder[pid];
         if (address(_rewarder) != address(0)) {
-            _rewarder.onSushiReward(pid, to, to, 0, user.amount);
+            _rewarder.onGZapReward(pid, to, to, 0, user.amount);
         }
 
         lpToken[pid].safeTransferFrom(msg.sender, address(this), amount);
@@ -223,13 +223,13 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
         UserInfo storage user = userInfo[pid][msg.sender];
 
         // Effects
-        user.rewardDebt = user.rewardDebt.sub(int256(amount.mul(pool.accSushiPerShare) / ACC_SUSHI_PRECISION));
+        user.rewardDebt = user.rewardDebt.sub(int256(amount.mul(pool.accGZapPerShare) / ACC_SUSHI_PRECISION));
         user.amount = user.amount.sub(amount);
 
         // Interactions
         IRewarder _rewarder = rewarder[pid];
         if (address(_rewarder) != address(0)) {
-            _rewarder.onSushiReward(pid, msg.sender, to, 0, user.amount);
+            _rewarder.onGZapReward(pid, msg.sender, to, 0, user.amount);
         }
 
         lpToken[pid].safeTransfer(to, amount);
@@ -243,7 +243,7 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
     function harvest(uint256 pid, address to) public {
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][msg.sender];
-        int256 accumulatedSushi = int256(user.amount.mul(pool.accSushiPerShare) / ACC_SUSHI_PRECISION);
+        int256 accumulatedSushi = int256(user.amount.mul(pool.accGZapPerShare) / ACC_SUSHI_PRECISION);
         uint256 _pendingSushi = accumulatedSushi.sub(user.rewardDebt).toUInt256();
 
         // Effects
@@ -256,7 +256,7 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
 
         IRewarder _rewarder = rewarder[pid];
         if (address(_rewarder) != address(0)) {
-            _rewarder.onSushiReward( pid, msg.sender, to, _pendingSushi, user.amount);
+            _rewarder.onGZapReward( pid, msg.sender, to, _pendingSushi, user.amount);
         }
 
         emit Harvest(msg.sender, pid, _pendingSushi);
@@ -269,11 +269,11 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
     function withdrawAndHarvest(uint256 pid, uint256 amount, address to) public {
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][msg.sender];
-        int256 accumulatedSushi = int256(user.amount.mul(pool.accSushiPerShare) / ACC_SUSHI_PRECISION);
+        int256 accumulatedSushi = int256(user.amount.mul(pool.accGZapPerShare) / ACC_SUSHI_PRECISION);
         uint256 _pendingSushi = accumulatedSushi.sub(user.rewardDebt).toUInt256();
 
         // Effects
-        user.rewardDebt = accumulatedSushi.sub(int256(amount.mul(pool.accSushiPerShare) / ACC_SUSHI_PRECISION));
+        user.rewardDebt = accumulatedSushi.sub(int256(amount.mul(pool.accGZapPerShare) / ACC_SUSHI_PRECISION));
         user.amount = user.amount.sub(amount);
 
         // Interactions
@@ -281,7 +281,7 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
 
         IRewarder _rewarder = rewarder[pid];
         if (address(_rewarder) != address(0)) {
-            _rewarder.onSushiReward(pid, msg.sender, to, _pendingSushi, user.amount);
+            _rewarder.onGZapReward(pid, msg.sender, to, _pendingSushi, user.amount);
         }
 
         lpToken[pid].safeTransfer(to, amount);
@@ -301,7 +301,7 @@ contract MiniZapDirector2 is BoringOwnable, BoringBatchable {
 
         IRewarder _rewarder = rewarder[pid];
         if (address(_rewarder) != address(0)) {
-            _rewarder.onSushiReward(pid, msg.sender, to, 0, 0);
+            _rewarder.onGZapReward(pid, msg.sender, to, 0, 0);
         }
 
         // Note: transfer can fail or succeed if `amount` is zero.

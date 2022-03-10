@@ -128,7 +128,7 @@ describe("MiniZapDirector2", function () {
           0,
           (await this.chef.poolInfo(0)).lastRewardTime,
           await this.rlp.balanceOf(this.chef.address),
-          (await this.chef.poolInfo(0)).accSushiPerShare
+          (await this.chef.poolInfo(0)).accGZapPerShare
         )
     })
 

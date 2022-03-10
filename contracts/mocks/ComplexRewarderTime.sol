@@ -71,7 +71,7 @@ contract ComplexRewarderTime is IRewarder,  BoringOwnable{
     }
 
 
-    function onSushiReward (uint256 pid, address _user, address to, uint256, uint256 lpToken) onlyMCV2 lock override external {
+    function onGZapReward (uint256 pid, address _user, address to, uint256, uint256 lpToken) onlyMCV2 lock override external {
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][_user];
         uint256 pending;

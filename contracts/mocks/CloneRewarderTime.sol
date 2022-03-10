@@ -11,7 +11,6 @@ interface IMasterChefV2 {
     function lpToken(uint256 pid) external view returns (IERC20 _lpToken);
 }
 
-/// @author @0xKeno
 contract CloneRewarderTime is IRewarder,  BoringOwnable{
     using BoringMath for uint256;
     using BoringMath128 for uint128;
@@ -74,7 +73,7 @@ contract CloneRewarderTime is IRewarder,  BoringOwnable{
         emit LogInit(rewardToken, owner, rewardPerSecond, masterLpToken);
     }
 
-    function onSushiReward (uint256 pid, address _user, address to, uint256, uint256 lpTokenAmount) onlyMCV2 lock override external {
+    function onGZapReward (uint256 pid, address _user, address to, uint256, uint256 lpTokenAmount) onlyMCV2 lock override external {
         require(IMasterChefV2(MASTERCHEF_V2).lpToken(pid) == masterLpToken);
 
         PoolInfo memory pool = updatePool(pid);
