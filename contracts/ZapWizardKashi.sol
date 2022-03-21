@@ -34,11 +34,11 @@ contract ZapWizardKashi is Ownable {
 
     IUniswapV2Factory private immutable factory;
     //0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac
-    address private immutable bar;
+    address private immutable stake;
     //0x8798249c2E607446EfB7Ad49eC89dD1865Ff4272
     IBentoBoxWithdraw private immutable bentoBox;
     //0xF5BCE5077908a1b7370B9ae04AdC565EBd643966 
-    address private immutable sushi;
+    address private immutable gzap;
     //0x6B3595068778DD592e39A122f4f5a5cF09C90fE2
     address private immutable weth;
     //0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
@@ -53,21 +53,21 @@ contract ZapWizardKashi is Ownable {
         address indexed token0,
         uint256 amount0,
         uint256 amountBENTO,
-        uint256 amountSUSHI
+        uint256 amountGZAP
     );
 
     constructor(
         IUniswapV2Factory _factory,
-        address _bar,
+        address _stake,
         IBentoBoxWithdraw _bentoBox,
-        address _sushi,
+        address _gzap,
         address _weth,
         bytes32 _pairCodeHash
     ) public {
         factory = _factory;
-        bar = _bar;
+        stake = _stake;
         bentoBox = _bentoBox;
-        sushi = _sushi;
+        gzap = _gzap;
         weth = _weth;
         pairCodeHash = _pairCodeHash;
     }
@@ -75,8 +75,8 @@ contract ZapWizardKashi is Ownable {
     function setBridge(address token, address bridge) external onlyOwner {
         // Checks
         require(
-            token != sushi && token != weth && token != bridge,
-            "Maker: Invalid bridge"
+            token != gzap && token != weth && token != bridge,
+            "Wizard: Invalid bridge"
         );
         // Effects
         _bridges[token] = bridge;
@@ -85,7 +85,7 @@ contract ZapWizardKashi is Ownable {
 
     modifier onlyEOA() {
         // Try to make flash-loan exploit harder to do by only allowing externally-owned addresses.
-        require(msg.sender == tx.origin, "Maker: Must use EOA");
+        require(msg.sender == tx.origin, "Wizard: Must use EOA");
         _;
     }
 
@@ -119,19 +119,19 @@ contract ZapWizardKashi is Ownable {
         );
     }
 
-    function _convertStep(address token0, uint256 amount0) private returns (uint256 sushiOut) {
-        if (token0 == sushi) {
-            IERC20(token0).safeTransfer(bar, amount0);
-            sushiOut = amount0;
+    function _convertStep(address token0, uint256 amount0) private returns (uint256 gzapOut) {
+        if (token0 == gzap) {
+            IERC20(token0).safeTransfer(stake, amount0);
+            gzapOut = amount0;
         } else if (token0 == weth) {
-            sushiOut = _swap(token0, sushi, amount0, bar);
+            gzapOut = _swap(token0, gzap, amount0, stake);
         } else {
             address bridge = _bridges[token0];
             if (bridge == address(0)) {
                 bridge = weth;
             }
             uint256 amountOut = _swap(token0, bridge, amount0, address(this));
-            sushiOut = _convertStep(bridge, amountOut);
+            gzapOut = _convertStep(bridge, amountOut);
         }
     }
 

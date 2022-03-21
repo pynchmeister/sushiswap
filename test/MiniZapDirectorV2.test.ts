@@ -5,9 +5,9 @@ import { ethers } from "hardhat"
 
 const { BigNumber } = require("ethers")
 
-describe("MiniZapDirector2", function () {
+describe("MiniZapDirectorV2", function () {
   before(async function () {
-    await prepare(this, ["MiniZapDirector2", "GZapToken", "ERC20Mock", "RewarderMock", "RewarderBrokenMock"])
+    await prepare(this, ["MiniZapDirectorV2", "GZapToken", "ERC20Mock", "RewarderMock", "RewarderBrokenMock"])
     await deploy(this, [["brokenRewarder", this.RewarderBrokenMock]])
   })
 
@@ -17,7 +17,7 @@ describe("MiniZapDirector2", function () {
     await deploy(this, [
       ["lp", this.ERC20Mock, ["LP Token", "LPT", getBigNumber(10)]],
       ["dummy", this.ERC20Mock, ["Dummy", "DummyT", getBigNumber(10)]],
-      ["chef", this.MiniZapDirector2, [this.sushi.address]],
+      ["chef", this.MiniZapDirectorV2, [this.sushi.address]],
       ["rlp", this.ERC20Mock, ["LP", "rLPT", getBigNumber(10)]],
       ["r", this.ERC20Mock, ["Reward", "RewardT", getBigNumber(100000)]],
     ])

@@ -19,8 +19,8 @@ import { HardhatUserConfig } from "hardhat/types"
 import { removeConsoleLog } from "hardhat-preprocessor"
 
 const accounts = {
-  mnemonic: process.env.MNEMONIC || "test test test test test test test test test test test junk",
-  // accountsBalance: "990000000000000000000",
+  mnemonic: process.env.MNEMONIC || "timber circle festival ball useful asset castle evidence chimney you jeans tag",
+  accountsBalance: "990000000000000000000",
 }
 
 const config: HardhatUserConfig = {
@@ -77,7 +77,7 @@ const config: HardhatUserConfig = {
       tags: ["test", "local"],
     },
     ropsten: {
-      url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      url: `https://eth-ropsten.alchemyapi.io/v2/1il4AV5z7PIH41OOqj2GRRBIHP9WDFPu`,
       accounts,
       chainId: 3,
       live: true,
@@ -87,7 +87,7 @@ const config: HardhatUserConfig = {
       gasMultiplier: 2,
     },
     rinkeby: {
-      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      url: `https://ropsten.infura.io/v3/3676426207db478895555cd6b835766e`,
       accounts,
       chainId: 4,
       live: true,

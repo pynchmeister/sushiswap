@@ -13,7 +13,7 @@ module.exports.skip = ({ getChainId }) =>
   new Promise(async (resolve, reject) => {
     try {
       const chainId = await getChainId()
-      resolve(chainId !== "31337")
+      resolve(chainId !== "3")
     } catch (error) {
       reject(error)
     }

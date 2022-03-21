@@ -8,12 +8,12 @@ module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts,
   const chainId = await getChainId()
 
   const factory = await ethers.getContract("UniswapV2Factory")
-  const bar = await ethers.getContract("SushiBar")
-  const sushi = await ethers.getContract("SushiToken")
+  const bar = await ethers.getContract("ZapStake")
+  const gzap = await ethers.getContract("GZapToken")
   
   let wethAddress;
   
-  if (chainId === '31337') {
+  if (chainId === '3') {
     wethAddress = (await deployments.get("WETH9Mock")).address
   } else if (chainId in WETH_ADDRESS) {
     wethAddress = WETH_ADDRESS[chainId]
@@ -21,19 +21,19 @@ module.exports = async function ({ ethers: { getNamedSigner }, getNamedAccounts,
     throw Error("No WETH!")
   }
 
-  await deploy("SushiMaker", {
+  await deploy("ZapWizard", {
     from: deployer,
-    args: [factory.address, bar.address, sushi.address, wethAddress],
+    args: [factory.address, bar.address, gzap.address, wethAddress],
     log: true,
     deterministicDeployment: false
   })
 
-  const maker = await ethers.getContract("SushiMaker")
+  const maker = await ethers.getContract("ZapWizard")
   if (await maker.owner() !== dev) {
-    console.log("Setting maker owner")
+    console.log("Setting wizard owner")
     await (await maker.transferOwnership(dev, true, false)).wait()
   }
 }
 
-module.exports.tags = ["SushiMaker"]
-module.exports.dependencies = ["UniswapV2Factory", "UniswapV2Router02", "SushiBar", "SushiToken"]
+module.exports.tags = ["ZapWizard"]
+module.exports.dependencies = ["UniswapV2Factory", "UniswapV2Router02", "ZapStake", "GZapToken"]

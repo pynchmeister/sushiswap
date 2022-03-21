@@ -9,7 +9,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
 
   let wethAddress;
 
-  if (chainId === "31337") {
+  if (chainId === "3") {
     wethAddress = (await deployments.get("WETH9Mock")).address;
   } else if (chainId in WNATIVE_ADDRESS) {
     wethAddress = WNATIVE_ADDRESS[chainId];
@@ -28,4 +28,4 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
 };
 
 module.exports.tags = ["UniswapV2Router02", "AMM"];
-module.exports.dependencies = ["UniswapV2Factory", "Mocks"];
+module.exports.dependencies = ["UniswapV2Factory", "test"];

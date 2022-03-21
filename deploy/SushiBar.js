@@ -3,9 +3,9 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
 
   const { deployer } = await getNamedAccounts()
 
-  const sushi = await deployments.get("SushiToken")
+  const sushi = await deployments.get("GZapToken")
 
-  await deploy("SushiBar", {
+  await deploy("ZapStake", {
     from: deployer,
     args: [sushi.address],
     log: true,
@@ -13,5 +13,5 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
   })
 }
 
-module.exports.tags = ["SushiBar"]
-module.exports.dependencies = ["UniswapV2Factory", "UniswapV2Router02", "SushiToken"]
+module.exports.tags = ["ZapStake"]
+module.exports.dependencies = ["UniswapV2Factory", "UniswapV2Router02", "GZapToken"]
